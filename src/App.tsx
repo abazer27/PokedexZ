@@ -1,4 +1,4 @@
-import { GitHubBanner, Refine } from "@refinedev/core";
+import { Refine, TitleProps } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
 import {
@@ -6,6 +6,8 @@ import {
   notificationProvider,
   RefineThemes,
   ThemedLayoutV2,
+  ThemedSiderV2,
+  ThemedTitleV2,
 } from "@refinedev/chakra-ui";
 
 import { ChakraProvider } from "@chakra-ui/react";
@@ -14,22 +16,14 @@ import routerBindings, {
   NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router-v6";
-import dataProvider from "@refinedev/simple-rest";
+import { axiosInstance } from "@refinedev/simple-rest";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { Header } from "./components/header";
-import {
-  BlogPostCreate,
-  BlogPostEdit,
-  BlogPostList,
-  BlogPostShow,
-} from "./pages/blog-posts";
-import {
-  CategoryCreate,
-  CategoryEdit,
-  CategoryList,
-  CategoryShow,
-} from "./pages/categories";
+import  { PokemonDetails, PokemonList } from "./pages/pokemon";
+import { customDataProvider } from "./utils/customDataProvider";
+import { MyPokemonDetails, MyPokemonList } from "./pages/myPokemon";
+import { AppIcon } from "./components";
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -40,34 +34,39 @@ function App() {
     getLocale: () => i18n.language,
   };
 
+  const ThemeLayoutTitle = ({collapsed} : TitleProps) => (
+    <ThemedTitleV2 collapsed= {collapsed} text="Pokedex Maister" icon= {<AppIcon />} />
+  )
+
+  const ThemeSider = () => {
+    return(
+      <ThemedSiderV2 
+      Title={ThemeLayoutTitle} 
+      />
+    )
+  }
+
   return (
     <BrowserRouter>
-      <GitHubBanner />
       <RefineKbarProvider>
         {/* You can change the theme colors here. example: theme={RefineThemes.Magenta} */}
-        <ChakraProvider theme={RefineThemes.Blue}>
+        <ChakraProvider theme={RefineThemes.Red}>
           <Refine
-            dataProvider={dataProvider("https://api.fake-rest.refine.dev")}
+            dataProvider={customDataProvider("https://pokeapi.co/api/v2", axiosInstance)}
             notificationProvider={notificationProvider}
             routerProvider={routerBindings}
             i18nProvider={i18nProvider}
             resources={[
               {
-                name: "blog_posts",
-                list: "/blog-posts",
-                create: "/blog-posts/create",
-                edit: "/blog-posts/edit/:id",
-                show: "/blog-posts/show/:id",
-                meta: {
-                  canDelete: true,
-                },
+                name: "pokemon",
+                list: "/pokemon",
+                show: "/pokemon/:id",
               },
               {
-                name: "categories",
-                list: "/categories",
-                create: "/categories/create",
-                edit: "/categories/edit/:id",
-                show: "/categories/show/:id",
+                name: "myPokemon",
+                list: "/myPokemon",
+                create: "/mypokemon/create",
+                show: "/mypokemon/show/:id",
                 meta: {
                   canDelete: true,
                 },
@@ -82,26 +81,23 @@ function App() {
             <Routes>
               <Route
                 element={
-                  <ThemedLayoutV2 Header={() => <Header sticky />}>
+                  <ThemedLayoutV2 Header={() => <Header sticky />} Sider={ThemeSider}>
                     <Outlet />
                   </ThemedLayoutV2>
                 }
               >
                 <Route
                   index
-                  element={<NavigateToResource resource="blog_posts" />}
+                  element={<NavigateToResource resource="pokemon" />}
                 />
-                <Route path="/blog-posts">
-                  <Route index element={<BlogPostList />} />
-                  <Route path="create" element={<BlogPostCreate />} />
-                  <Route path="edit/:id" element={<BlogPostEdit />} />
-                  <Route path="show/:id" element={<BlogPostShow />} />
+                <Route path="/pokemon">
+                  <Route index element={<PokemonList />} />
+                  <Route path="show/:id" element={<PokemonDetails />}  />
                 </Route>
-                <Route path="/categories">
-                  <Route index element={<CategoryList />} />
-                  <Route path="create" element={<CategoryCreate />} />
-                  <Route path="edit/:id" element={<CategoryEdit />} />
-                  <Route path="show/:id" element={<CategoryShow />} />
+                <Route path="/myPokemon">
+                  <Route index element={<MyPokemonList />}/>
+                  <Route path="create" />
+                  <Route path="show/:id" element={<MyPokemonDetails />}/>
                 </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>
