@@ -9,9 +9,11 @@ export const MyPokemonList = () => {
   const keys = Object.keys(localStorage)
   const datas = []
   const navigate = useNavigate();
-  for (let i = 2; i < keys.length; i++) {
+  for (let i = 0; i < keys.length; i++) {
     const pokemons = localStorage.getItem(keys[i]);
-    datas.push(JSON.parse(pokemons as string))
+    if(pokemons?.includes('pokemon')){
+      datas.push(JSON.parse(pokemons as string))
+    }
   }
   const handlePokemonDetails = (nickname: string) => {
     navigate(`show/${nickname}`);
