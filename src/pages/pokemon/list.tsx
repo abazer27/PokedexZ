@@ -1,29 +1,47 @@
-import { Box, Button, Card, CardFooter, Flex, Heading, Image, Skeleton, Text } from '@chakra-ui/react';
-import { useApiUrl, useCustom } from '@refinedev/core'
+import { Box, Button, Card, CardFooter, Flex, Heading, Image, Input, Skeleton, Text } from '@chakra-ui/react';
+import { useApiUrl, useCustom, useOne } from '@refinedev/core'
 import { Pokemon, Type } from '../../interfaces/pokemonData';
 import { colours } from '../../utils/pokemonTypeColors';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { axiosInstance } from '@refinedev/simple-rest';
 
 export const PokemonList = () => {
   const apiUrl = useApiUrl();
   const navigate = useNavigate();
   const limit = 21;
   const [offset, setOffset] = useState(0);
+  const [searchPokemon, setSearchPokemon] = useState('')
+  const [url, setUrl] = useState(`${apiUrl}/pokemon?offset=${offset}&limit=${limit}`)
   const { data, isLoading, isFetching } = useCustom<Pokemon[]>({
-    url: `${apiUrl}/pokemon?offset=${offset}&limit=${limit}`,
+    url: url,
     method: 'get',
   });
-
+  console.log(url, offset)
   const handlePageChange = (offset: number) => {
     setOffset(offset);
+    setUrl(`${apiUrl}/pokemon?offset=${offset}&limit=${limit}`)
   };
 
   const handlePokemonDetails = (id: string) => {
     navigate(`show/${id}`);
   }
+
+  const handleSearchPokemon = (id: string) => {
+    if(searchPokemon !== ''){
+      setUrl(`${apiUrl}/pokemon/${id}`)
+    }
+    else{
+      setUrl(`${apiUrl}/pokemon?offset=${offset}&limit=${limit}`)
+    }
+  }
+
   return (
     <Box>
+      <Box display='flex' gap='4' padding='4'>
+        <Input disabled={isLoading} type='text' onChange={(e)=>setSearchPokemon(e.target.value)}/>
+        <Button onClick={()=> handleSearchPokemon(searchPokemon)}>Search Pokemon</Button>
+      </Box>
       <Flex flexWrap='wrap' justifyContent='center'>
         {isLoading || isFetching ? (
           Array.from({ length: 21 }).map((_, index) => (

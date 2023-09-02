@@ -109,17 +109,24 @@ export const customDataProvider = (apiUrl: string, httpClient: AxiosInstance): D
           break;
       }
       let { data } = axiosResponse;
-      const pokemons = data?.results.map(
-        (pokemon: { name: string, url: string }) => pokemon?.url
-      )
-      if (pokemons) {
-        const pokemonList: any[] = []
-        for (const url of pokemons) {
-          axiosResponse = await httpClient.get(url)
-          pokemonList.push(axiosResponse.data)
+      const pokemonList: Pokemon[] = []
+      if(Array.isArray(data?.results)) {
+        const pokemons = data?.results.map(
+          (pokemon: { name: string, url: string }) => pokemon?.url
+          )
+          if (pokemons) {
+          for (const url of pokemons) {
+            axiosResponse = await httpClient.get(url)
+            pokemonList.push(axiosResponse.data)
+          }
+          data = pokemonList
         }
+      }
+      else{
+        pokemonList.push(axiosResponse.data)
         data = pokemonList
       }
+      console.log(data)
       return Promise.resolve({ data });
     },
     getOne: async ({ resource, id, meta }) => {
